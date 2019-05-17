@@ -8,7 +8,7 @@ from . import mesh
 class BuildItem:
     def __init__(self, objectid, transform=None):
         self.objectid = objectid
-        self.transform = transform if transform else np.identity(4)
+        self.transform = transform if transform is not None else np.identity(4)
 
 class Build:
     def __init__(self):
