@@ -1,7 +1,7 @@
 import os
 import setuptools
 
-version = '19.0.0'
+version = '19.0.1'
 
 build_num = os.getenv('BUILD_NUMBER')
 
