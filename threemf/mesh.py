@@ -72,7 +72,7 @@ class Mesh:
         T[1,3] = -0.5 * (box[0].y + box[1].y)
         T[2,3] = -0.5 * (box[0].z + box[1].z)
 
-        self.transform(T)
+        # self.transform(T)
 
         return T
 
