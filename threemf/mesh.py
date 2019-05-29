@@ -9,7 +9,7 @@ class Vertex:
         self.z = z
 
     def transform(self, T):
-        X = np.multiply(T, np.matrix([[self.x], [self.y], [self.z]]))
+        X = np.multiply(T, np.matrix([[self.x], [self.y], [self.z], [1.0]]))
         self.x = X[0,0]
         self.y = X[1,0]
         self.z = X[2,0]
