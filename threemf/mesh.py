@@ -9,6 +9,10 @@ class Vertex:
         self.z = z
 
     def transform(self, T):
+        """
+        TODO Re-examine this transformation. When combined with the
+        Mesh.center method, it was making all y and z equal to 0.
+        """
         X = np.multiply(T, np.matrix([[self.x], [self.y], [self.z], [1.0]]))
         self.x = X[0,0]
         self.y = X[1,0]
@@ -59,9 +63,8 @@ class Mesh:
 
     def center(self):
         """
-        Transforms the coordinates so the center of the bounding box
-        is coincident with (0, 0, 0). The transformation matrix is 
-        returned.
+        Returns the transformation matrix that translates the center of the bounding box
+        to (0, 0, 0).
         """
 
         box = self.bounding_box()
@@ -71,8 +74,6 @@ class Mesh:
         T[0,3] = -0.5 * (box[0].x + box[1].x)
         T[1,3] = -0.5 * (box[0].y + box[1].y)
         T[2,3] = -0.5 * (box[0].z + box[1].z)
-
-        # self.transform(T)
 
         return T
 
