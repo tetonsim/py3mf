@@ -1,3 +1,8 @@
+'''
+A helper module for creating pre-determined geometries that can be added
+to ThreeMF files.
+'''
+
 import stl
 import numpy as np
 

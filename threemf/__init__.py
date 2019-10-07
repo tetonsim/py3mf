@@ -30,6 +30,9 @@ class Model(Object):
         self.metadata = {}
 
     def add_meta_data(self, name, value):
+        self.metadata[name] = value
+
+    def add_meta_data_cura(self, name, value):
         if not name.startswith('cura:'):
             name = 'cura:' + name
         self.metadata[name] = value
