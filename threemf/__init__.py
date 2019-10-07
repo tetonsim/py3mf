@@ -1,7 +1,7 @@
 import numpy as np
 import stl
 
-from . import mesh, xml
+from . import geom, mesh, xml
 
 class BuildItem:
     def __init__(self, objectid, transform=None):
