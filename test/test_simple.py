@@ -8,13 +8,14 @@ class CubeTest(unittest.TestCase):
 
         c = threemf.geom.Cube(100., 100., 5.)
 
-        self.cube = self.tmf.model_from_stl(c.stl_mesh())
+        self.cube = self.tmf.default_model.object_from_stl(c.stl_mesh())
 
-        self.tmf.build.add_item(self.cube)
+        self.tmf.default_model.build.add_item(self.cube)
 
     def test_mesh(self):
         self.assertEqual( len(self.tmf.models), 1 )
-        self.assertEqual( len(self.tmf.build.items) ,  1 )
+        self.assertEqual( len(self.tmf.default_model.objects), 1 )
+        self.assertEqual( len(self.tmf.default_model.build.items) ,  1 )
 
         mesh = self.cube.mesh
 
@@ -32,9 +33,12 @@ class CubeTest(unittest.TestCase):
         self.assertEqual(self.cube.metadata['cura:infill_sparse_density'], 50)
 
     def test_threemf_write(self):
-        writer = threemf.xml.Writer()
+        writer = threemf.io.Writer()
 
         with io.BytesIO() as f:
+            writer.write(self.tmf, f)
+
+        with open('/home/brady/tmp/test.3mf', 'wb') as f:
             writer.write(self.tmf, f)
 
         # for now, just assert that nothing is throwing an exception, however,
