@@ -1,16 +1,17 @@
 import xml.etree.cElementTree as xml
-
-from . import extension, geom, mesh, model, io
+from io import StringIO
 
 class ThreeMF:
     _THREED_MODEL_PATH = '3D/3dmodel.model'
+    _CONTENT_TYPES_PATH = '[Content_Types].xml'
+    _RELS_PATH = '_rels/.rels'
 
     def __init__(self):
         self.models = []
         self.extensions = []
 
-        self.content_types = ContentTypes()
-        self.relationships = Relationships(self.models)
+        #self.content_types = ContentTypes()
+        #self.relationships = Relationships(self.models)
 
     @property
     def default_model(self):
@@ -23,8 +24,24 @@ class ThreeMF:
         
         return new_mdl
 
-class ContentTypes:
-    def serialize(self):        
+    @property
+    def _relationships_xml(self):
+        root = xml.Element('Relationships')
+
+        root.set('xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships')
+
+        for m in self.models:
+            rel = xml.Element('Relationship')
+            rel.set('Id', 'rel0')
+            rel.set('Target', m.path)
+            rel.set('Type', 'http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel')
+
+            root.append(rel)
+
+        return xml.tostring(root, encoding='utf8')
+
+    @property
+    def _content_types_xml(self):        
         root = xml.Element('Types')
 
         root.set('xmlns', 'http://schemas.openxmlformats.org/package/2006/content-types')
@@ -37,30 +54,28 @@ class ContentTypes:
         def2.set('ContentType', 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml')
         def2.set('Extension', 'model')
 
+        # TODO write extensions here?
+
         root.append(def1)
         root.append(def2)
 
         return xml.tostring(root, encoding='utf8')
 
-class Relationships:
-    def __init__(self, models):
-        self._models = models
+    def _load(self, zipf, rels_xml, ct_xml):
+        # TODO load extensions from content types XML?
 
-    def serialize(self):
-        # I'm honestly not sure what this file is for and I directly
-        # copied the content from an example 3MF written by Cura. This
-        # may need to change, if it in fact, depends on other information.
+        it = xml.iterparse(StringIO(rels_xml))
+        for _, el in it:
+            prefix, has_namespace, postfix = el.tag.partition('}')
+            if has_namespace:
+                el.tag = postfix  # strip all namespaces
+        root = it.root
 
-        root = xml.Element('Relationships')
+        model_paths = []
+        for rel in root.findall('Relationship'):
+            if rel.get('Type').endswith('3dmodel'):
+                model_paths.append( rel.get('Path') )
 
-        root.set('xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships')
+        # for each model path create a new Model object and add it to models        
 
-        for m in self._models:
-            rel = xml.Element('Relationship')
-            rel.set('Id', 'rel0')
-            rel.set('Target', m.path)
-            rel.set('Type', 'http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel')
-
-            root.append(rel)
-
-        return xml.tostring(root, encoding='utf8')
+from . import extension, geom, mesh, model, io

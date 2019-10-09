@@ -34,12 +34,16 @@ class CubeTest(unittest.TestCase):
 
     def test_threemf_write(self):
         writer = threemf.io.Writer()
-
+        reader = threemf.io.Reader()
+        
         with io.BytesIO() as f:
             writer.write(self.tmf, f)
+            zip_bytes = f.getvalue()
 
-        with open('/home/brady/tmp/test.3mf', 'wb') as f:
-            writer.write(self.tmf, f)
+        tmf2 = threemf.ThreeMF()
+
+        with io.BytesIO(zip_bytes) as f:
+            reader.read(tmf2, f)
 
         # for now, just assert that nothing is throwing an exception, however,
         # are their more explicit things we could check for in the file content?
