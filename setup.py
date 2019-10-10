@@ -9,10 +9,11 @@ if build_num:
     version += '.' + str(build_num)
 
 setuptools.setup(
-    name='threemf',
+    name='teton-3mf',
     version=version,
     author='Teton Simulation',
     author_email='info@tetonsim.com',
     packages=setuptools.find_packages(),
-    install_requires=['numpy', 'numpy-stl']
+    install_requires=['numpy', 'numpy-stl'],
+    license='LGPLv3'
 )
