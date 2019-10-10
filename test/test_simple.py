@@ -10,6 +10,9 @@ class CubeTest(unittest.TestCase):
         c = threemf.geom.Cube(100., 100., 5.)
 
         self.cube = self.tmf.default_model.object_from_stl(c.stl_mesh())
+        
+        self.cube.add_meta_data_cura('infill_pattern', 'grid')
+        self.cube.add_meta_data_cura('infill_sparse_density', 50)
 
         self.cubeT = np.array(
             [
@@ -33,14 +36,11 @@ class CubeTest(unittest.TestCase):
         self.assertEqual( len(mesh.vertices), 36 )
 
     def test_meta_data(self):
-        self.cube.add_meta_data_cura('infill_pattern', 'grid')
-        self.cube.add_meta_data_cura('infill_sparse_density', 50)
-
         self.assertTrue(self.cube.has_meta_data('cura:infill_pattern'))
         self.assertTrue(self.cube.has_meta_data('cura:infill_sparse_density'))
 
         self.assertEqual(self.cube.get_meta_data('cura:infill_pattern').value, 'grid')
-        self.assertEqual(self.cube.get_meta_data('cura:infill_sparse_density').value, 50)
+        self.assertEqual(self.cube.get_meta_data('cura:infill_sparse_density').value, '50')
 
     def test_threemf_write(self):
         writer = threemf.io.Writer()
@@ -69,3 +69,10 @@ class CubeTest(unittest.TestCase):
 
         self.assertEqual(item.objectid, mdl.id)
         self.assertTrue(np.array_equal(item.transform, self.cubeT))
+
+        self.assertTrue(mdl.has_meta_data('cura:infill_pattern'))
+        self.assertTrue(mdl.has_meta_data('cura:infill_sparse_density'))
+
+        self.assertEqual(mdl.get_meta_data('cura:infill_pattern').value, 'grid')
+        self.assertEqual(int(mdl.get_meta_data('cura:infill_sparse_density').value), 50)
+

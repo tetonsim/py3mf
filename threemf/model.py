@@ -21,9 +21,23 @@ class Build:
 class Metadata:
     def __init__(self, name, value, preserve=True, type='xs:string'):
         self.name = name
-        self.value = value
         self.preserve = preserve
         self.type = type
+        self.__value = None
+
+        self.value = value
+
+    @property
+    def value(self):
+        if self.type == 'xs:string':
+            return self.__value
+        return self.__value
+    
+    @value.setter
+    def value(self, v):
+        if self.type == 'xs:string':
+            self.__value = str(v)
+        self.__value = str(v)
 
 class Object:
     def __init__(self, id, type):
@@ -136,8 +150,8 @@ class Model:
             for md in model.metadata:
                 xm = xml.Element('metadata')
                 xm.set('name', md.name)
-                xm.set('preserve', str(xm.preserve))
-                xm.set('type', xm.type)
+                xm.set('preserve', str(md.preserve))
+                xm.set('type', md.type)
                 xm.text = str(md.value)
 
                 metadatagroup.append(xm)
@@ -214,11 +228,13 @@ class Model:
 
             for xmg in xobj.findall('metadatagroup'):
                 for xmd in xmg.findall('metadata'):
-                    obj.add_meta_data(
-                        xmd.get('name'),
-                        xmd.text,
-                        xmd.get('preserve', True),
-                        xmd.get('type', 'xs:string')
+                    obj.metadata.append(
+                        Metadata(
+                            xmd.get('name'),
+                            xmd.text,
+                            xmd.get('preserve', True),
+                            xmd.get('type', 'xs:string')
+                        )
                     )
 
             self.objects.append(obj)
