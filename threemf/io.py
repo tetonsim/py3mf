@@ -1,5 +1,6 @@
 import zipfile
 import typing
+import xml.etree.cElementTree as xml
 
 from . import ThreeMF
 
@@ -12,11 +13,11 @@ class Writer:
 
         z = zipfile.ZipFile(tmffile, mode='w', compression=zipfile.ZIP_DEFLATED)
 
-        z.writestr(tmf._CONTENT_TYPES_PATH, tmf._content_types_xml)
-        z.writestr(tmf._RELS_PATH, tmf._relationships_xml)
+        z.writestr(tmf._CONTENT_TYPES_PATH, xml.tostring(tmf._content_types_xml, encoding='utf8'))
+        z.writestr(tmf._RELS_PATH, xml.tostring(tmf._relationships_xml, encoding='utf8'))
 
         for m in tmf.models:
-            z.writestr(m.path, m.serialize())
+            z.writestr(m.path, xml.tostring(m.serialize(), encoding='utf8'))
 
         for ext in tmf.extensions:
             ext.write(z)

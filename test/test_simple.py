@@ -1,6 +1,7 @@
 import threemf
 import unittest
 import io
+import numpy as np
 
 class CubeTest(unittest.TestCase):
     def setUp(self):
@@ -10,7 +11,16 @@ class CubeTest(unittest.TestCase):
 
         self.cube = self.tmf.default_model.object_from_stl(c.stl_mesh())
 
-        self.tmf.default_model.build.add_item(self.cube)
+        self.cubeT = np.array(
+            [
+                [0.3, 0.7, 0.0, 10.],
+                [0.4, 0.5, 0.1, 11.],
+                [0.2, 0.2, 0.6, 12.],
+                [0.0, 0.0, 0.0, 1.0]
+            ]
+        )
+
+        self.tmf.default_model.build.add_item(self.cube, self.cubeT)
 
     def test_mesh(self):
         self.assertEqual( len(self.tmf.models), 1 )
@@ -26,11 +36,11 @@ class CubeTest(unittest.TestCase):
         self.cube.add_meta_data_cura('infill_pattern', 'grid')
         self.cube.add_meta_data_cura('infill_sparse_density', 50)
 
-        self.assertTrue('cura:infill_pattern' in self.cube.metadata.keys())
-        self.assertTrue('cura:infill_sparse_density' in self.cube.metadata.keys())
+        self.assertTrue(self.cube.has_meta_data('cura:infill_pattern'))
+        self.assertTrue(self.cube.has_meta_data('cura:infill_sparse_density'))
 
-        self.assertEqual(self.cube.metadata['cura:infill_pattern'], 'grid')
-        self.assertEqual(self.cube.metadata['cura:infill_sparse_density'], 50)
+        self.assertEqual(self.cube.get_meta_data('cura:infill_pattern').value, 'grid')
+        self.assertEqual(self.cube.get_meta_data('cura:infill_sparse_density').value, 50)
 
     def test_threemf_write(self):
         writer = threemf.io.Writer()
@@ -45,5 +55,17 @@ class CubeTest(unittest.TestCase):
         with io.BytesIO(zip_bytes) as f:
             reader.read(tmf2, f)
 
-        # for now, just assert that nothing is throwing an exception, however,
-        # are their more explicit things we could check for in the file content?
+        self.assertEqual( len(tmf2.models), 1 )
+        self.assertEqual( len(tmf2.models[0].objects), 1 )
+        self.assertEqual( len(tmf2.models[0].build.items) ,  1 )
+
+        mdl = tmf2.models[0].objects[0]
+        mesh = mdl.mesh
+
+        self.assertEqual( len(mesh.triangles), 12 )
+        self.assertEqual( len(mesh.vertices), 36 )
+
+        item = tmf2.models[0].build.items[0]
+
+        self.assertEqual(item.objectid, mdl.id)
+        self.assertTrue(np.array_equal(item.transform, self.cubeT))

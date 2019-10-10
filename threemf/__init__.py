@@ -38,7 +38,7 @@ class ThreeMF:
 
             root.append(rel)
 
-        return xml.tostring(root, encoding='utf8')
+        return root
 
     @property
     def _content_types_xml(self):        
@@ -59,23 +59,36 @@ class ThreeMF:
         root.append(def1)
         root.append(def2)
 
-        return xml.tostring(root, encoding='utf8')
+        return root
 
-    def _load(self, zipf, rels_xml, ct_xml):
+    def _load(self, zipf, ct_xml, rels_xml):
         # TODO load extensions from content types XML?
 
-        it = xml.iterparse(StringIO(rels_xml))
-        for _, el in it:
-            prefix, has_namespace, postfix = el.tag.partition('}')
-            if has_namespace:
-                el.tag = postfix  # strip all namespaces
-        root = it.root
+        def strip_ns(xmlstring):
+            it = xml.iterparse(StringIO(xmlstring))
+            for _, el in it:
+                prefix, has_namespace, postfix = el.tag.partition('}')
+                if has_namespace:
+                    el.tag = postfix  # strip all namespaces
+            return it.root
+
+        rel_root = strip_ns(rels_xml)
 
         model_paths = []
-        for rel in root.findall('Relationship'):
+        for rel in rel_root.findall('Relationship'):
             if rel.get('Type').endswith('3dmodel'):
-                model_paths.append( rel.get('Path') )
+                path = rel.get('Target')
+                if path:
+                    model_paths.append(path)
 
-        # for each model path create a new Model object and add it to models        
+        # for each model path create a new Model object and add it to models
+        for p in model_paths:
+            if p not in zipf.namelist():
+                raise Exception(f'Could not find referenced target in zip file: {p}')
+            xmlstring = zipf.read(p).decode('utf-8')
+            mdl_root = strip_ns(xmlstring)
+            mdl = model.Model(p)
+            mdl.deserialize(mdl_root)
+            self.models.append(mdl)
 
 from . import extension, geom, mesh, model, io

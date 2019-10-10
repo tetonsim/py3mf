@@ -18,6 +18,13 @@ class Build:
             BuildItem(obj.id, transform)
         )
 
+class Metadata:
+    def __init__(self, name, value, preserve=True, type='xs:string'):
+        self.name = name
+        self.value = value
+        self.preserve = preserve
+        self.type = type
+
 class Object:
     def __init__(self, id, type):
         self.id = id
@@ -28,15 +35,21 @@ class ObjectModel(Object):
         super().__init__(id, 'model')
 
         self.mesh = mesh.Mesh()
-        self.metadata = {}
+        self.metadata = []
 
     def add_meta_data(self, name, value):
-        self.metadata[name] = value
+        self.metadata.append(Metadata(name, value))
 
     def add_meta_data_cura(self, name, value):
         if not name.startswith('cura:'):
             name = 'cura:' + name
-        self.metadata[name] = value
+        self.metadata.append(Metadata(name, value))
+
+    def has_meta_data(self, name):
+        return name in [md.name for md in self.metadata]
+
+    def get_meta_data(self, name):
+        return next(md for md in self.metadata if md.name == name)
 
 class Model:
     def __init__(self, path):
@@ -86,7 +99,7 @@ class Model:
         root.append(resources)
         root.append(self._build())
 
-        return xml.tostring(root, encoding='utf8')
+        return root
 
     def _model(self, model):
         obj = xml.Element('object')
@@ -120,12 +133,12 @@ class Model:
 
         if len(model.metadata) > 0:
             metadatagroup = xml.Element('metadatagroup')
-            for k, v in model.metadata.items():
+            for md in model.metadata:
                 xm = xml.Element('metadata')
-                xm.set('name', k)
-                xm.set('preserve', 'true')
-                xm.set('type', 'xs:string')
-                xm.text = str(v)
+                xm.set('name', md.name)
+                xm.set('preserve', str(xm.preserve))
+                xm.set('type', xm.type)
+                xm.text = str(md.value)
 
                 metadatagroup.append(xm)
             
@@ -159,3 +172,73 @@ class Model:
         xi.set('transform', transform_string)
 
         return xi
+
+    def deserialize(self, xmlroot : xml.Element):
+        self.unit = xmlroot.get('unit')
+
+        if self.unit not in ('millimeter', ):
+            raise Exception(f'Unsupported unit type in {self.path}: {self.unit}')
+
+        xres = xmlroot.find('resources')
+
+        for xobj in xres.findall('object'):
+            objtype = xobj.get('type')
+            if not objtype or objtype != 'model':
+                print(f'Ignoring unknown object type: {objtype}')
+            
+            objid = int(xobj.get('id'))
+            
+            xmesh = xobj.find('mesh')
+            xverts = xmesh.find('vertices')
+            xtris = xmesh.find('triangles')
+
+            obj = ObjectModel(objid)
+
+            for xv in xverts.findall('vertex'):
+                obj.mesh.vertices.append(
+                    mesh.Vertex(
+                        float(xv.get('x')),
+                        float(xv.get('y')),
+                        float(xv.get('z'))
+                    )
+                )
+
+            for xt in xtris.findall('triangle'):
+                obj.mesh.triangles.append(
+                    mesh.Triangle(
+                        int(xt.get('v1')),
+                        int(xt.get('v2')),
+                        int(xt.get('v3'))
+                    )
+                )
+
+            for xmg in xobj.findall('metadatagroup'):
+                for xmd in xmg.findall('metadata'):
+                    obj.add_meta_data(
+                        xmd.get('name'),
+                        xmd.text,
+                        xmd.get('preserve', True),
+                        xmd.get('type', 'xs:string')
+                    )
+
+            self.objects.append(obj)
+
+        xbuild = xmlroot.find('build')
+
+        for xbi in xbuild.findall('item'):
+            objectid = int(xbi.get('objectid'))
+            transform = xbi.get('transform')
+
+            flatt = [float(a) for a in transform.split()]
+
+            flattA = np.array(flatt)
+
+            T = np.append(
+                np.reshape(flattA, (4, 3)),
+                np.array([[0., 0., 0., 1.]]).transpose(), 
+                axis=1
+            ).transpose()
+
+            self.build.items.append(
+                BuildItem(objectid, T)
+            )
