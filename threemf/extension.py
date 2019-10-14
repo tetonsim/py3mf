@@ -1,12 +1,16 @@
 import os
 import zipfile
+import json
 
 class Asset:
     def __init__(self, name):
         self.name = name
 
     def serialize(self):
-        raise NotImplementedError
+        raise NotImplementedError()
+
+    def deserialize(self):
+        raise NotImplementedError()
 
 class RawFile(Asset):
     def __init__(self, name):
@@ -15,6 +19,20 @@ class RawFile(Asset):
 
     def serialize(self):
         return self.content
+
+    def deserialize(self, string_content):
+        self.content = string_content
+
+class JsonFile(Asset):
+    def __init__(self, name):
+        super().__init__(name)
+        self.content = {}
+
+    def serialize(self):
+        return json.dumps(self.content)
+
+    def deserialize(self, string_content):
+        self.content = json.loads(string_content)
 
 class Extension:
     '''
@@ -32,6 +50,12 @@ class Extension:
             zipf.writestr(os.path.join(self.directory, asset.name), asset.serialize())
 
     @classmethod
+    def make_asset(cls, name):
+        if name.endswith('.json'):
+            return JsonFile(name)
+        return RawFile(name)
+
+    @classmethod
     def read(cls, zipf : zipfile.ZipFile):
         '''
         The default read method will read all files in the Extension's
@@ -43,8 +67,9 @@ class Extension:
 
         for f in zipf.namelist():
             if f.startswith(dir_with_sep):
-                asset = RawFile(f.lstrip(dir_with_sep))
-                asset.content = zipf.read(f)
+                fname = f.lstrip(dir_with_sep)
+                asset = ext.make_asset(fname)
+                asset.deserialize(zipf.read(f))
                 ext.assets.append(asset)
 
         return ext
@@ -61,3 +86,9 @@ class Cura(Extension):
 
     def __init__(self):
         super().__init__(Cura.Name)
+
+    @classmethod
+    def make_asset(cls, name):
+        # Override the Extension make_asset method to just return
+        # all RawFiles so no JSON is deserialized/serialized
+        return RawFile(name)

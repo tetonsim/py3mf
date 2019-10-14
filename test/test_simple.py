@@ -76,3 +76,48 @@ class CubeTest(unittest.TestCase):
         self.assertEqual(mdl.get_meta_data('cura:infill_pattern').value, 'grid')
         self.assertEqual(int(mdl.get_meta_data('cura:infill_sparse_density').value), 50)
 
+class TestExtension(threemf.extension.Extension):
+    Name = 'TestExtension'
+
+    def __init__(self):
+        super().__init__(TestExtension.Name)
+
+class JsonAssetTest(unittest.TestCase):
+    def setUp(self):
+        self.tmf = threemf.ThreeMF()
+
+        self.ext = TestExtension()
+
+        jasset = threemf.extension.JsonFile('test.json')
+        jasset.content = {
+            'name': 'my extension\'s file',
+            'mass': 258.1
+        }
+
+        self.ext.assets.append(jasset)
+
+        self.tmf.extensions.append(self.ext)
+
+    def test_json_asset(self):
+        writer = threemf.io.Writer()
+        reader = threemf.io.Reader()
+
+        reader.register_extension(TestExtension)
+        
+        with io.BytesIO() as f:
+            writer.write(self.tmf, f)
+            zip_bytes = f.getvalue()
+
+        tmf2 = threemf.ThreeMF()
+
+        with io.BytesIO(zip_bytes) as f:
+            reader.read(tmf2, f)
+
+        self.assertEqual(len(tmf2.extensions), 1)
+        self.assertEqual(len(tmf2.extensions[0].assets), 1)
+
+        asset = tmf2.extensions[0].assets[0]
+
+        self.assertTrue(isinstance(asset.content, dict))
+        self.assertEqual(asset.content['name'], "my extension's file")
+        self.assertEqual(asset.content['mass'], 258.1)
