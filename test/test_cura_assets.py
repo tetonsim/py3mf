@@ -22,7 +22,7 @@ class CuraAssetTest(unittest.TestCase):
         writer = threemf.io.Writer()
         reader = threemf.io.Reader()
 
-        reader.register_extension(threemf.extension.Cura)
+        cura_ext = reader.register_extension(threemf.extension.Cura)
         
         with io.BytesIO() as f:
             writer.write(self.tmf, f)
@@ -34,9 +34,6 @@ class CuraAssetTest(unittest.TestCase):
             reader.read(tmf2, f)
 
         self.assertEqual(len(tmf2.extensions), 1)
-
-        cura_ext = tmf2.extensions[0]
-
         self.assertEqual(cura_ext.Name, 'Cura')
         self.assertEqual(len(cura_ext.assets), 1)
 

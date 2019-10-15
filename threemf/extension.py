@@ -58,24 +58,19 @@ class Extension:
             return JsonFile(name)
         return RawFile(name)
 
-    @classmethod
-    def read(cls, zipf : zipfile.ZipFile):
+    def read(self, zipf : zipfile.ZipFile):
         '''
         The default read method will read all files in the Extension's
         directory as RawFile assets.
         '''
-        ext = cls()
-
-        dir_with_sep = ext.directory + os.sep
+        dir_with_sep = self.directory + os.sep
 
         for f in zipf.namelist():
             if f.startswith(dir_with_sep):
                 fname = f.lstrip(dir_with_sep)
-                asset = ext.make_asset(fname)
+                asset = self.make_asset(fname)
                 asset.deserialize(zipf.read(f))
-                ext.assets.append(asset)
-
-        return ext
+                self.assets.append(asset)
 
 class Cura(Extension):
     '''

@@ -29,7 +29,9 @@ class Reader:
         self._extensions = []
 
     def register_extension(self, cls):
-        self._extensions.append(cls)
+        ext = cls()
+        self._extensions.append(ext)
+        return ext
 
     def read(self, tmf : ThreeMF, tmffile : typing.io.BinaryIO):
         z = zipfile.ZipFile(tmffile)
@@ -44,7 +46,8 @@ class Reader:
         )
 
         for ext in self._extensions:
-            tmf.extensions.append(ext.read(z))
+            ext.read(z)
+            tmf.extensions.append(ext)
 
-        for ext in tmf.extensions:
+        for ext in self._extensions:
             ext.process_threemf(tmf)
