@@ -45,3 +45,6 @@ class Reader:
 
         for ext in self._extensions:
             tmf.extensions.append(ext.read(z))
+
+        for ext in tmf.extensions:
+            ext.process_threemf(tmf)

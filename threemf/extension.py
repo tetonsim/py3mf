@@ -49,6 +49,9 @@ class Extension:
         for asset in self.assets:
             zipf.writestr(os.path.join(self.directory, asset.name), asset.serialize())
 
+    def process_threemf(self, tmf):
+        pass
+
     @classmethod
     def make_asset(cls, name):
         if name.endswith('.json'):

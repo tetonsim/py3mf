@@ -82,9 +82,20 @@ class TestExtension(threemf.extension.Extension):
     def __init__(self):
         super().__init__(TestExtension.Name)
 
+    def process_threemf(self, tmf : threemf.ThreeMF):
+        content = self.assets[0].content
+        mesh = tmf.default_model.objects[0].mesh
+        content['num_tris'] = len(mesh.triangles)
+
 class JsonAssetTest(unittest.TestCase):
     def setUp(self):
         self.tmf = threemf.ThreeMF()
+
+        mdl = self.tmf.default_model
+
+        c = threemf.geom.Cube(10., 10., 5.)
+        self.cube = self.tmf.default_model.object_from_stl(c.stl_mesh())
+        self.tmf.default_model.build.add_item(self.cube)
 
         self.ext = TestExtension()
 
@@ -121,3 +132,6 @@ class JsonAssetTest(unittest.TestCase):
         self.assertTrue(isinstance(asset.content, dict))
         self.assertEqual(asset.content['name'], "my extension's file")
         self.assertEqual(asset.content['mass'], 258.1)
+
+        self.assertTrue('num_tris' in asset.content.keys())
+        self.assertEqual(asset.content['num_tris'], 12)
