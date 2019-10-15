@@ -1,3 +1,4 @@
+import os
 import xml.etree.cElementTree as xml
 from io import StringIO
 
@@ -83,6 +84,7 @@ class ThreeMF:
 
         # for each model path create a new Model object and add it to models
         for p in model_paths:
+            p = p.lstrip('/\\')
             if p not in zipf.namelist():
                 raise Exception(f'Could not find referenced target in zip file: {p}')
             xmlstring = zipf.read(p).decode('utf-8')
