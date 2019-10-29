@@ -66,7 +66,7 @@ class Extension:
         dir_with_sep = self.directory + os.sep
 
         for f in zipf.namelist():
-            if f.startswith(dir_with_sep):
+            if f.startswith(dir_with_sep) and len(f) > len(dir_with_sep):
                 fname = f.lstrip(dir_with_sep)
                 asset = self.make_asset(fname)
                 asset.deserialize(zipf.read(f))
