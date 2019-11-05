@@ -108,7 +108,7 @@ class Model:
             if isinstance(obj, ObjectModel):
                 resources.append(self._model(obj))
             else:
-                raise Exception(f'Unsupported object type: {obj.type}')
+                raise Exception('Unsupported object type: {}'.format(obj.type))
 
         root.append(resources)
         root.append(self._build())
@@ -191,14 +191,14 @@ class Model:
         self.unit = xmlroot.get('unit')
 
         if self.unit not in ('millimeter', ):
-            raise Exception(f'Unsupported unit type in {self.path}: {self.unit}')
+            raise Exception('Unsupported unit type in {}: {}'.format(self.path, self.unit))
 
         xres = xmlroot.find('resources')
 
         for xobj in xres.findall('object'):
             objtype = xobj.get('type')
             if not objtype or objtype != 'model':
-                print(f'Ignoring unknown object type: {objtype}')
+                print('Ignoring unknown object type: {}'.format(objtype))
             
             objid = int(xobj.get('id'))
             

@@ -86,7 +86,7 @@ class ThreeMF:
         for p in model_paths:
             p = p.lstrip('/\\')
             if p not in zipf.namelist():
-                raise Exception(f'Could not find referenced target in zip file: {p}')
+                raise Exception('Could not find referenced target in zip file: {}'.format(p))
             xmlstring = zipf.read(p).decode('utf-8')
             mdl_root = strip_ns(xmlstring)
             mdl = model.Model(p)
