@@ -1,6 +1,11 @@
 import sys
-import stl
 import numpy as np
+
+try:
+    import stl
+    NUMPY_STL = True
+except:
+    NUMPY_STL = False
 
 class Vertex:
     def __init__(self, x=0.0, y=0.0, z=0.0):
@@ -46,6 +51,9 @@ class Mesh:
 
     @classmethod
     def FromSTLFile(cls, stl_path):
+        if not NUMPY_STL:
+            raise ImportError('numpy-stl module was not found')
+
         return cls.FromSTL( stl.mesh.Mesh.from_file(stl_path) )
 
     def bounding_box(self):

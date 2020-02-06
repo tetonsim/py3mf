@@ -3,11 +3,16 @@ A helper module for creating pre-determined geometries that can be added
 to ThreeMF files.
 '''
 
-import stl
 import numpy as np
 
+try:
+    import stl
+    NUMPY_STL = True
+except:
+    NUMPY_STL = False
+
 class Geometry:
-    def stl_mesh(self) -> stl.Mesh:
+    def stl_mesh(self) -> 'stl.Mesh':
         '''
         Returns an STL representation of the geometry
         '''
@@ -19,7 +24,10 @@ class Cube(Geometry):
         self.width = width
         self.height = height
 
-    def stl_mesh(self) -> stl.Mesh:
+    def stl_mesh(self) -> 'stl.Mesh':
+        if not NUMPY_STL:
+            raise ImportError('numpy-stl module was not found')
+
         x = self.length * 0.5
         y = self.width * 0.5
         z = self.height * 0.5

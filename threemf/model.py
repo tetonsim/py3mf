@@ -1,6 +1,11 @@
-import stl
 import numpy as np
 import xml.etree.cElementTree as xml
+
+try:
+    import stl
+    NUMPY_STL = True
+except:
+    NUMPY_STL = False
 
 from . import mesh
 
@@ -84,7 +89,7 @@ class Model:
 
         return mdl
 
-    def object_from_stl(self, stl_mesh : stl.mesh.Mesh):
+    def object_from_stl(self, stl_mesh : 'stl.mesh.Mesh'):
         mdl = ObjectModel(self._next_object_id)
         mdl.mesh = mesh.Mesh.FromSTL(stl_mesh)
         
