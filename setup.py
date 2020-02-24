@@ -1,7 +1,7 @@
 import os
 import setuptools
 
-version = '19.1.8'
+from threemf import __version__
 
 build_num = os.getenv('BUILD_NUMBER')
 
@@ -10,7 +10,7 @@ if build_num:
 
 setuptools.setup(
     name='teton-3mf',
-    version=version,
+    version=__version__,
     author='Teton Simulation',
     author_email='info@tetonsim.com',
     packages=setuptools.find_packages(),
