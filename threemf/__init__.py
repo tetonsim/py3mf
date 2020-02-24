@@ -93,5 +93,5 @@ class ThreeMF:
             mdl.deserialize(mdl_root)
             self.models.append(mdl)
 
-from .version import __version__
+from ._version import __version__
 from . import extension, geom, mesh, model, io

@@ -4,7 +4,7 @@ import setuptools
 from distutils.util import convert_path
 
 version_ns = {}
-version_path = convert_path('threemf/version.py')
+version_path = convert_path('threemf/_version.py')
 with open(version_path) as version_file:
     exec(version_file.read(), version_ns)
 
