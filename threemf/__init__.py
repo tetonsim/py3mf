@@ -2,8 +2,6 @@ import os
 import xml.etree.cElementTree as xml
 from io import StringIO
 
-__version__ = '19.1.9'
-
 class ThreeMF:
     _THREED_MODEL_PATH = '3D/3dmodel.model'
     _CONTENT_TYPES_PATH = '[Content_Types].xml'
@@ -95,4 +93,5 @@ class ThreeMF:
             mdl.deserialize(mdl_root)
             self.models.append(mdl)
 
+from .version import __version__
 from . import extension, geom, mesh, model, io
