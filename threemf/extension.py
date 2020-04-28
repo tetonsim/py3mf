@@ -63,7 +63,7 @@ class Extension:
         The default read method will read all files in the Extension's
         directory as RawFile assets.
         '''
-        dir_with_sep = self.directory + os.sep
+        dir_with_sep = self.directory + '/'
 
         for f in zipf.namelist():
             if f.startswith(dir_with_sep) and len(f) > len(dir_with_sep):
