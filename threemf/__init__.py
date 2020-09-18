@@ -2,6 +2,13 @@ import os
 import xml.etree.cElementTree as xml
 from io import StringIO
 
+_iterparse = xml.iterparse
+
+def use_safe_parser(use: bool = True):
+    from defusedxml.cElementTree import iterparse
+    global _iterparse
+    _iterparse = iterparse
+
 class ThreeMF:
     _THREED_MODEL_PATH = '3D/3dmodel.model'
     _CONTENT_TYPES_PATH = '[Content_Types].xml'
@@ -66,7 +73,7 @@ class ThreeMF:
         # TODO load extensions from content types XML?
 
         def strip_ns(xmlstring):
-            it = xml.iterparse(StringIO(xmlstring))
+            it = _iterparse(StringIO(xmlstring))
             for _, el in it:
                 prefix, has_namespace, postfix = el.tag.partition('}')
                 if has_namespace:
@@ -92,6 +99,9 @@ class ThreeMF:
             mdl = model.Model(p)
             mdl.deserialize(mdl_root)
             self.models.append(mdl)
+
+class ThreeMFException(Exception):
+    pass
 
 from ._version import __version__
 from . import extension, geom, mesh, model, io

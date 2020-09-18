@@ -2,7 +2,7 @@ import zipfile
 import typing
 import xml.etree.cElementTree as xml
 
-from . import ThreeMF
+from . import ThreeMF, ThreeMFException
 
 class Writer:
     def write(self, tmf : ThreeMF, tmffile : typing.io.BinaryIO):
@@ -51,3 +51,12 @@ class Reader:
 
         for ext in self._extensions:
             ext.process_threemf(tmf)
+
+    def verify(self, tmffile: typing.io.BinaryIO, max_file_size_mb: int = 100):
+        z = zipfile.ZipFile(tmffile)
+
+        max_bytes = max_file_size_mb * 1024 * 1024
+
+        for f in z.filelist:
+            if f.file_size > max_bytes:
+                raise ThreeMFException(f'File {f.filename} in 3MF exceeds max file size of {max_file_size_mb} MB')

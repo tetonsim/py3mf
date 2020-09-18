@@ -37,7 +37,7 @@ class Metadata:
         if self.type == 'xs:string':
             return self.__value
         return self.__value
-    
+
     @value.setter
     def value(self, v):
         if self.type == 'xs:string':
@@ -82,7 +82,7 @@ class Model:
     def object_from_stl_file(self, stl_path):
         mdl = ObjectModel(self._next_object_id)
         mdl.mesh = mesh.Mesh.FromSTLFile(stl_path)
-        
+
         self._next_object_id += 1
 
         self.objects.append(mdl)
@@ -92,7 +92,7 @@ class Model:
     def object_from_stl(self, stl_mesh : 'stl.mesh.Mesh'):
         mdl = ObjectModel(self._next_object_id)
         mdl.mesh = mesh.Mesh.FromSTL(stl_mesh)
-        
+
         self._next_object_id += 1
 
         self.objects.append(mdl)
@@ -160,7 +160,7 @@ class Model:
                 xm.text = str(md.value)
 
                 metadatagroup.append(xm)
-            
+
             obj.append(metadatagroup)
 
         return obj
@@ -204,9 +204,9 @@ class Model:
             objtype = xobj.get('type')
             if not objtype or objtype != 'model':
                 print('Ignoring unknown object type: {}'.format(objtype))
-            
+
             objid = int(xobj.get('id'))
-            
+
             xmesh = xobj.find('mesh')
             xverts = xmesh.find('vertices')
             xtris = xmesh.find('triangles')
@@ -256,7 +256,7 @@ class Model:
 
             T = np.append(
                 np.reshape(flattA, (4, 3)),
-                np.array([[0., 0., 0., 1.]]).transpose(), 
+                np.array([[0., 0., 0., 1.]]).transpose(),
                 axis=1
             ).transpose()
 
