@@ -9,10 +9,12 @@ except:
 
 from . import mesh
 
+
 class BuildItem:
     def __init__(self, objectid, transform=None):
         self.objectid = objectid
         self.transform = transform if transform is not None else np.identity(4)
+
 
 class Build:
     def __init__(self):
@@ -22,6 +24,13 @@ class Build:
         self.items.append(
             BuildItem(obj.id, transform)
         )
+
+
+class Component:
+    def __init__(self, objectid, transform):
+        self.objectid = objectid
+        self.transform = transform if transform is not None else np.identity(4)
+
 
 class Metadata:
     def __init__(self, name, value, preserve=True, type='xs:string'):
@@ -44,17 +53,25 @@ class Metadata:
             self.__value = str(v)
         self.__value = str(v)
 
+
 class Object:
     def __init__(self, id, type):
         self.id = id
         self.type = type
+
 
 class ObjectModel(Object):
     def __init__(self, id):
         super().__init__(id, 'model')
 
         self.mesh = mesh.Mesh()
-        self.metadata = []
+        self.components = [] # List[Component]
+        self.metadata = [] # List[Metadata]
+
+    def add_component(self, obj: Object, transform=None):
+        self.components.append(
+            Component(obj.id, transform)
+        )
 
     def add_meta_data(self, name, value):
         self.metadata.append(Metadata(name, value))
@@ -69,6 +86,7 @@ class ObjectModel(Object):
 
     def get_meta_data(self, name):
         return next(md for md in self.metadata if md.name == name)
+
 
 class Model:
     def __init__(self, path):
@@ -120,7 +138,7 @@ class Model:
 
         return root
 
-    def _model(self, model):
+    def _model(self, model: ObjectModel):
         obj = xml.Element('object')
         obj.set('id', str(model.id))
         obj.set('type', model.type)
@@ -150,6 +168,17 @@ class Model:
 
         obj.append(mesh)
 
+        if len(model.components) > 0:
+            components = xml.Element('components')
+            for c in model.components:
+                cm = xml.Element('component')
+                cm.set('objectid', str(c.objectid))
+                cm.set('transform', Model._transform_string(c.transform))
+
+                components.append(cm)
+
+            obj.append(components)
+
         if len(model.metadata) > 0:
             metadatagroup = xml.Element('metadatagroup')
             for md in model.metadata:
@@ -176,21 +205,34 @@ class Model:
     def _build_item(self, item):
         xi = xml.Element('item')
         xi.set('objectid', str(item.objectid))
+        xi.set('transform', Model._transform_string(item.transform))
 
+        return xi
+
+    @staticmethod
+    def _transform_string(transform):
         # Transpose the transformation matrix (3MF uses row-major)
         # https://github.com/3MFConsortium/spec_core/blob/master/3MF%20Core%20Specification.md#33-3d-matrices
-        flatt = item.transform.transpose().tolist()
+        flatt = transform.transpose().tolist()
 
         # flatt contains a list of rows - loop through the rows and then
         # the first 3 columns and put into a flattened list
         comp_strings = [str(c) for row in flatt for c in row[0:3]]
 
         # Create the attribute string as a space separated list of the matrix values
-        transform_string = ' '.join(comp_strings)
+        return ' '.join(comp_strings)
 
-        xi.set('transform', transform_string)
+    @staticmethod
+    def _transform_from_string(transform):
+        flatt = [float(a) for a in transform.split()]
 
-        return xi
+        flattA = np.array(flatt)
+
+        return np.append(
+            np.reshape(flattA, (4, 3)),
+            np.array([[0., 0., 0., 1.]]).transpose(),
+            axis=1
+        ).transpose()
 
     def deserialize(self, xmlroot : xml.Element):
         self.unit = xmlroot.get('unit')
@@ -231,6 +273,15 @@ class Model:
                     )
                 )
 
+            for xcs in xobj.findall('components'):
+                for xc in xcs.findall('component'):
+                    obj.components.append(
+                        Component(
+                            int(xc.get('objectid')),
+                            Model._transform_from_string(xc.get('transform'))
+                        )
+                    )
+
             for xmg in xobj.findall('metadatagroup'):
                 for xmd in xmg.findall('metadata'):
                     obj.metadata.append(
@@ -250,16 +301,9 @@ class Model:
             objectid = int(xbi.get('objectid'))
             transform = xbi.get('transform')
 
-            flatt = [float(a) for a in transform.split()]
-
-            flattA = np.array(flatt)
-
-            T = np.append(
-                np.reshape(flattA, (4, 3)),
-                np.array([[0., 0., 0., 1.]]).transpose(),
-                axis=1
-            ).transpose()
-
             self.build.items.append(
-                BuildItem(objectid, T)
+                BuildItem(
+                    objectid,
+                    Model._transform_from_string(transform)
+                )
             )
