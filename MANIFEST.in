@@ -1,0 +1,2 @@
+include threemf/*
+exclude test/*
