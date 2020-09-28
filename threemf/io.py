@@ -59,4 +59,4 @@ class Reader:
 
         for f in z.filelist:
             if f.file_size > max_bytes:
-                raise ThreeMFException(f'File {f.filename} in 3MF exceeds max file size of {max_file_size_mb} MB')
+                raise ThreeMFException('File %s in 3MF exceeds max file size of %i MB' % (f.filename, max_file_size))
