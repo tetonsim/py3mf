@@ -32,7 +32,7 @@ class JsonFile(Asset):
         return json.dumps(self.content)
 
     def deserialize(self, string_content):
-        self.content = json.loads(string_content)
+        self.content = json.loads(string_content.decode('utf-8'))
 
 class Extension:
     '''

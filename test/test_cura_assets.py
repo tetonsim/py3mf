@@ -23,7 +23,7 @@ class CuraAssetTest(unittest.TestCase):
         reader = threemf.io.Reader()
 
         cura_ext = reader.register_extension(threemf.extension.Cura)
-        
+
         with io.BytesIO() as f:
             writer.write(self.tmf, f)
             zip_bytes = f.getvalue()
@@ -37,7 +37,7 @@ class CuraAssetTest(unittest.TestCase):
         self.assertEqual(cura_ext.Name, 'Cura')
         self.assertEqual(len(cura_ext.assets), 1)
 
-        content = json.loads(cura_ext.assets[0].content)
+        content = json.loads(cura_ext.assets[0].content.decode('utf-8'))
 
         self.assertEqual(len(content.keys()), 1)
         self.assertEqual(content['test'], 100)
