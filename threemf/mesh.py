@@ -1,3 +1,4 @@
+import copy
 import sys
 import numpy as np
 
@@ -34,6 +35,45 @@ class Mesh:
         self.vertices = []
         self.triangles = []
 
+    def __add__(self, other):
+        '''
+        Assumes that the intersection of the two meshes being added consists of
+        at most edges and/or vertices, but not entire triangles or volumes of space.
+        '''
+        if len(self.vertices) == 0:
+            return other
+
+        c_mesh = Mesh()
+
+        vertices = copy.deepcopy(self.vertices)
+        triangles = copy.deepcopy(self.triangles)
+
+        vert_map = {}
+
+        for i, v in enumerate(other.vertices):
+            repeat = False
+            for j, ov in enumerate(vertices):
+                if (v.x == ov.x and v.y == ov.y and v.z == ov.z):
+                    vert_map[i] = j
+                    repeat = True
+                    break
+
+            if not repeat:
+                vertices.append(v)
+                vert_map[i] = len(vertices) - 1
+
+        c_mesh.vertices = vertices
+
+        for t in other.triangles:
+            v1 = vert_map[t.v1]
+            v2 = vert_map[t.v2]
+            v3 = vert_map[t.v3]
+            triangles.append(Triangle(v1, v2, v3))
+
+        c_mesh.triangles = triangles
+
+        return c_mesh
+
     @classmethod
     def FromSTL(cls, stl_mesh):
         mesh = cls()
@@ -55,6 +95,24 @@ class Mesh:
             raise ImportError('numpy-stl module was not found')
 
         return cls.FromSTL( stl.mesh.Mesh.from_file(stl_path) )
+
+    def to_stl(self) -> stl.Mesh:
+        if not NUMPY_STL:
+            raise ImportError('numpy-stl module was not found')
+
+        data = np.zeros(len(self.triangles), dtype = stl.Mesh.dtype)
+
+        def vertex_to_array(vert: Vertex) -> 'NDArray[float]':
+            return np.array([vert.x, vert.y, vert.z])
+
+        for i, f in enumerate(self.triangles):
+            vert1 = vertex_to_array(self.vertices[f.v1])
+            vert2 = vertex_to_array(self.vertices[f.v2])
+            vert3 = vertex_to_array(self.vertices[f.v3])
+            facet = np.array([vert1, vert2, vert3])
+            data['vectors'][i] = facet
+
+        return stl.Mesh(data)
 
     def bounding_box(self):
         pmin = Vertex(sys.float_info.max, sys.float_info.max, sys.float_info.max)
