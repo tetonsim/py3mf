@@ -96,7 +96,7 @@ class Mesh:
 
         return cls.FromSTL( stl.mesh.Mesh.from_file(stl_path) )
 
-    def to_stl(self) -> stl.Mesh:
+    def to_stl(self) -> 'stl.Mesh':
         if not NUMPY_STL:
             raise ImportError('numpy-stl module was not found')
 
