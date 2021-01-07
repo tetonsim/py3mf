@@ -43,34 +43,27 @@ class Mesh:
         if len(self.vertices) == 0:
             return other
 
-        c_mesh = Mesh()
-
-        vertices = copy.deepcopy(self.vertices)
-        triangles = copy.deepcopy(self.triangles)
+        c_mesh = copy.deepcopy(self)
 
         vert_map = {}
 
         for i, v in enumerate(other.vertices):
             repeat = False
-            for j, ov in enumerate(vertices):
+            for j, ov in enumerate(c_mesh.vertices):
                 if (v.x == ov.x and v.y == ov.y and v.z == ov.z):
                     vert_map[i] = j
                     repeat = True
                     break
 
             if not repeat:
-                vertices.append(v)
-                vert_map[i] = len(vertices) - 1
-
-        c_mesh.vertices = vertices
+                c_mesh.vertices.append(v)
+                vert_map[i] = len(c_mesh.vertices) - 1
 
         for t in other.triangles:
             v1 = vert_map[t.v1]
             v2 = vert_map[t.v2]
             v3 = vert_map[t.v3]
-            triangles.append(Triangle(v1, v2, v3))
-
-        c_mesh.triangles = triangles
+            c_mesh.triangles.append(Triangle(v1, v2, v3))
 
         return c_mesh
 
