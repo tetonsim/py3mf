@@ -249,29 +249,31 @@ class Model:
 
             objid = int(xobj.get('id'))
 
-            xmesh = xobj.find('mesh')
-            xverts = xmesh.find('vertices')
-            xtris = xmesh.find('triangles')
-
             obj = ObjectModel(objid)
 
-            for xv in xverts.findall('vertex'):
-                obj.mesh.vertices.append(
-                    mesh.Vertex(
-                        float(xv.get('x')),
-                        float(xv.get('y')),
-                        float(xv.get('z'))
-                    )
-                )
+            xmesh = xobj.find('mesh')
 
-            for xt in xtris.findall('triangle'):
-                obj.mesh.triangles.append(
-                    mesh.Triangle(
-                        int(xt.get('v1')),
-                        int(xt.get('v2')),
-                        int(xt.get('v3'))
+            if xmesh:
+                xverts = xmesh.find('vertices')
+                xtris = xmesh.find('triangles')
+
+                for xv in xverts.findall('vertex'):
+                    obj.mesh.vertices.append(
+                        mesh.Vertex(
+                            float(xv.get('x')),
+                            float(xv.get('y')),
+                            float(xv.get('z'))
+                        )
                     )
-                )
+
+                for xt in xtris.findall('triangle'):
+                    obj.mesh.triangles.append(
+                        mesh.Triangle(
+                            int(xt.get('v1')),
+                            int(xt.get('v2')),
+                            int(xt.get('v3'))
+                        )
+                    )
 
             for xcs in xobj.findall('components'):
                 for xc in xcs.findall('component'):
