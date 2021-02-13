@@ -139,3 +139,23 @@ class Mesh:
     def transform(self, T):
         for v in self.vertices:
             v.transform(T)
+
+    def expand_vertices(self) -> 'Mesh':
+        '''
+        Returns a copy of this mesh that contains unique vertices for every triangle
+        '''
+        mesh = self.__class__()
+
+        n = 0
+
+        for t in self.triangles:
+            v1 = copy.copy(self.vertices[t.v1])
+            v2 = copy.copy(self.vertices[t.v2])
+            v3 = copy.copy(self.vertices[t.v3])
+
+            mesh.vertices.extend([v1, v2, v3])
+            mesh.triangles.append(Triangle(n, n + 1, n + 2))
+
+            n += 3
+
+        return mesh
